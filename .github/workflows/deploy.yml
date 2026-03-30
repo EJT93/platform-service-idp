@@ -1,0 +1,41 @@
+name: Deploy — Apply on Merge
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    defaults:
+      run:
+        working-directory: terraform/environments/dev
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Package Lambda
+        run: |
+          cd ../../../app
+          pip install -r requirements.txt -t package/
+          cp -r src/* package/
+          cd package && zip -r ../../lambda.zip .
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Upload Lambda package to S3
+        run: |
+          aws s3 cp ../../lambda.zip s3://platform-service-artifacts-dev/lambda/package.zip
+
+      - uses: hashicorp/setup-terraform@v3
+      - run: terraform init
+      - run: terraform apply -auto-approve
