@@ -6,14 +6,13 @@ from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-ssm = boto3.client("ssm")
-
 
 def _resolve_table_name() -> str:
     """Resolve table name from SSM parameter or fall back to env var."""
     ssm_param = os.environ.get("DYNAMODB_TABLE_SSM")
     if ssm_param:
         try:
+            ssm = boto3.client("ssm")
             resp = ssm.get_parameter(Name=ssm_param)
             return resp["Parameter"]["Value"]
         except Exception:
@@ -21,14 +20,22 @@ def _resolve_table_name() -> str:
     return os.environ.get("DYNAMODB_TABLE", "platform-service-table")
 
 
-TABLE_NAME = _resolve_table_name()
+# Lazy resolution — only called when DynamoDBService is instantiated
+_table_name = None
+
+
+def _get_table_name() -> str:
+    global _table_name
+    if _table_name is None:
+        _table_name = _resolve_table_name()
+    return _table_name
 
 
 class DynamoDBService:
     """Handles DynamoDB interactions for service records."""
 
     def __init__(self, table_name: str | None = None):
-        self.table = boto3.resource("dynamodb").Table(table_name or TABLE_NAME)
+        self.table = boto3.resource("dynamodb").Table(table_name or _get_table_name())
 
     def create_service(self, item: dict) -> dict:
         """Put a service record into DynamoDB. Returns the item."""
