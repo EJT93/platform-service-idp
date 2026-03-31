@@ -57,6 +57,12 @@ data "aws_iam_policy_document" "deploy" {
       "s3:GetBucketLocation",
       "s3:GetBucketLogging",
       "s3:GetBucketTagging",
+      "s3:GetBucketWebsite",
+      "s3:GetBucketObjectLockConfiguration",
+      "s3:GetAccelerateConfiguration",
+      "s3:GetBucketRequestPayment",
+      "s3:GetLifecycleConfiguration",
+      "s3:GetReplicationConfiguration",
       "s3:GetEncryptionConfiguration",
       "s3:GetBucketPublicAccessBlock",
       "s3:PutBucketVersioning",
@@ -88,6 +94,7 @@ data "aws_iam_policy_document" "deploy" {
       "dynamodb:ListTagsOfResource",
       "dynamodb:UpdateContinuousBackups",
       "dynamodb:DescribeContinuousBackups",
+      "dynamodb:DescribeTimeToLive",
     ]
     resources = [
       "arn:aws:dynamodb:${local.region}:${local.account_id}:table/elijah-terraform-lock-table",
@@ -153,6 +160,22 @@ data "aws_iam_policy_document" "deploy" {
     ]
     resources = [
       "arn:aws:iam::${local.account_id}:role/platform-service-*",
+      "arn:aws:iam::${local.account_id}:role/github-actions-deploy",
+    ]
+  }
+
+  # IAM OIDC Provider — manage the GitHub OIDC provider
+  statement {
+    actions = [
+      "iam:GetOpenIDConnectProvider",
+      "iam:CreateOpenIDConnectProvider",
+      "iam:DeleteOpenIDConnectProvider",
+      "iam:TagOpenIDConnectProvider",
+      "iam:UntagOpenIDConnectProvider",
+      "iam:ListOpenIDConnectProviderTags",
+    ]
+    resources = [
+      "arn:aws:iam::${local.account_id}:oidc-provider/token.actions.githubusercontent.com",
     ]
   }
 
