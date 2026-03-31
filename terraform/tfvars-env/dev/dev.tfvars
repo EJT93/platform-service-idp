@@ -3,4 +3,4 @@ environment = "dev"
 project_name = "platform-service"
 lambda_s3_key = "lambda/package.zip"
 alert_emails  = ["elijahtorrence@gmail.com"]
-github_repo   = ""  # e.g. "elijahtorrence/platform-service-idp"
+github_repo   = "EJT93/platform-service-idp"
