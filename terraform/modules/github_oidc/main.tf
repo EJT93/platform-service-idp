@@ -44,33 +44,35 @@ locals {
 
 data "aws_iam_policy_document" "deploy" {
   # S3 — state bucket + artifacts bucket
+  # Terraform reads all bucket attributes on refresh
   statement {
     actions = [
+      "s3:CreateBucket",
+      "s3:DeleteBucket",
       "s3:GetObject",
       "s3:PutObject",
-      "s3:ListBucket",
       "s3:DeleteObject",
-      "s3:GetBucketVersioning",
-      "s3:GetBucketPolicy",
+      "s3:ListBucket",
       "s3:GetBucketAcl",
       "s3:GetBucketCORS",
       "s3:GetBucketLocation",
       "s3:GetBucketLogging",
+      "s3:GetBucketPolicy",
+      "s3:GetBucketPublicAccessBlock",
+      "s3:GetBucketRequestPayment",
       "s3:GetBucketTagging",
+      "s3:GetBucketVersioning",
       "s3:GetBucketWebsite",
       "s3:GetBucketObjectLockConfiguration",
       "s3:GetAccelerateConfiguration",
-      "s3:GetBucketRequestPayment",
+      "s3:GetEncryptionConfiguration",
       "s3:GetLifecycleConfiguration",
       "s3:GetReplicationConfiguration",
-      "s3:GetEncryptionConfiguration",
-      "s3:GetBucketPublicAccessBlock",
-      "s3:PutBucketVersioning",
       "s3:PutBucketPolicy",
-      "s3:PutEncryptionConfiguration",
       "s3:PutBucketPublicAccessBlock",
       "s3:PutBucketTagging",
-      "s3:CreateBucket",
+      "s3:PutBucketVersioning",
+      "s3:PutEncryptionConfiguration",
     ]
     resources = [
       "arn:aws:s3:::elijah-terraform-state",
@@ -81,20 +83,22 @@ data "aws_iam_policy_document" "deploy" {
   }
 
   # DynamoDB — state lock table + app table
+  # Terraform reads TTL, PITR, SSE, and tags on refresh
   statement {
     actions = [
+      "dynamodb:CreateTable",
+      "dynamodb:DeleteTable",
+      "dynamodb:DescribeTable",
+      "dynamodb:DescribeContinuousBackups",
+      "dynamodb:DescribeTimeToLive",
+      "dynamodb:UpdateContinuousBackups",
+      "dynamodb:UpdateTimeToLive",
       "dynamodb:GetItem",
       "dynamodb:PutItem",
       "dynamodb:DeleteItem",
-      "dynamodb:DescribeTable",
-      "dynamodb:CreateTable",
-      "dynamodb:DeleteTable",
       "dynamodb:TagResource",
       "dynamodb:UntagResource",
       "dynamodb:ListTagsOfResource",
-      "dynamodb:UpdateContinuousBackups",
-      "dynamodb:DescribeContinuousBackups",
-      "dynamodb:DescribeTimeToLive",
     ]
     resources = [
       "arn:aws:dynamodb:${local.region}:${local.account_id}:table/elijah-terraform-lock-table",
@@ -102,30 +106,32 @@ data "aws_iam_policy_document" "deploy" {
     ]
   }
 
-  # Lambda
+  # Lambda — Terraform reads code signing, concurrency, event configs on refresh
   statement {
     actions = [
       "lambda:CreateFunction",
-      "lambda:UpdateFunctionCode",
-      "lambda:UpdateFunctionConfiguration",
       "lambda:DeleteFunction",
       "lambda:GetFunction",
       "lambda:GetFunctionConfiguration",
       "lambda:GetFunctionCodeSigningConfig",
-      "lambda:ListVersionsByFunction",
+      "lambda:GetFunctionConcurrency",
+      "lambda:GetFunctionEventInvokeConfig",
       "lambda:GetPolicy",
+      "lambda:ListVersionsByFunction",
+      "lambda:ListTags",
+      "lambda:UpdateFunctionCode",
+      "lambda:UpdateFunctionConfiguration",
       "lambda:AddPermission",
       "lambda:RemovePermission",
       "lambda:TagResource",
       "lambda:UntagResource",
-      "lambda:ListTags",
     ]
     resources = [
       "arn:aws:lambda:${local.region}:${local.account_id}:function:platform-service-*",
     ]
   }
 
-  # API Gateway v2
+  # API Gateway v2 — all CRUD operations
   statement {
     actions = [
       "apigateway:GET",
@@ -134,22 +140,28 @@ data "aws_iam_policy_document" "deploy" {
       "apigateway:PATCH",
       "apigateway:DELETE",
       "apigateway:TagResource",
+      "apigateway:UntagResource",
+      "apigateway:GetTags",
     ]
     resources = [
       "arn:aws:apigateway:${local.region}::/apis",
       "arn:aws:apigateway:${local.region}::/apis/*",
+      "arn:aws:apigateway:${local.region}::/tags/*",
     ]
   }
 
-  # IAM — manage Lambda execution role
+  # IAM — manage Lambda execution role + GitHub Actions deploy role
+  # Terraform reads policy versions, instance profiles on refresh
   statement {
     actions = [
       "iam:CreateRole",
       "iam:DeleteRole",
       "iam:GetRole",
+      "iam:UpdateRole",
       "iam:PassRole",
       "iam:TagRole",
       "iam:UntagRole",
+      "iam:ListRoleTags",
       "iam:AttachRolePolicy",
       "iam:DetachRolePolicy",
       "iam:PutRolePolicy",
@@ -165,12 +177,15 @@ data "aws_iam_policy_document" "deploy" {
     ]
   }
 
-  # IAM OIDC Provider — manage the GitHub OIDC provider
+  # IAM OIDC Provider
   statement {
     actions = [
-      "iam:GetOpenIDConnectProvider",
       "iam:CreateOpenIDConnectProvider",
       "iam:DeleteOpenIDConnectProvider",
+      "iam:GetOpenIDConnectProvider",
+      "iam:UpdateOpenIDConnectProviderThumbprint",
+      "iam:AddClientIDToOpenIDConnectProvider",
+      "iam:RemoveClientIDFromOpenIDConnectProvider",
       "iam:TagOpenIDConnectProvider",
       "iam:UntagOpenIDConnectProvider",
       "iam:ListOpenIDConnectProviderTags",
@@ -187,6 +202,7 @@ data "aws_iam_policy_document" "deploy" {
       "logs:DeleteLogGroup",
       "logs:DescribeLogGroups",
       "logs:PutRetentionPolicy",
+      "logs:DeleteRetentionPolicy",
       "logs:TagLogGroup",
       "logs:UntagLogGroup",
       "logs:ListTagsLogGroup",
@@ -206,6 +222,8 @@ data "aws_iam_policy_document" "deploy" {
       "cloudwatch:PutMetricAlarm",
       "cloudwatch:DeleteAlarms",
       "cloudwatch:DescribeAlarms",
+      "cloudwatch:EnableAlarmActions",
+      "cloudwatch:DisableAlarmActions",
       "cloudwatch:ListTagsForResource",
       "cloudwatch:TagResource",
       "cloudwatch:UntagResource",
@@ -215,19 +233,21 @@ data "aws_iam_policy_document" "deploy" {
     ]
   }
 
-  # SNS
+  # SNS — topics + subscriptions
   statement {
     actions = [
       "sns:CreateTopic",
       "sns:DeleteTopic",
       "sns:GetTopicAttributes",
       "sns:SetTopicAttributes",
-      "sns:TagResource",
-      "sns:UntagResource",
-      "sns:ListTagsForResource",
       "sns:Subscribe",
       "sns:Unsubscribe",
       "sns:GetSubscriptionAttributes",
+      "sns:SetSubscriptionAttributes",
+      "sns:ListSubscriptionsByTopic",
+      "sns:TagResource",
+      "sns:UntagResource",
+      "sns:ListTagsForResource",
     ]
     resources = [
       "arn:aws:sns:${local.region}:${local.account_id}:platform-service-*",
