@@ -1,4 +1,0 @@
-# file: /Users/elijahtorrence/platform-service-idp/platform-service-idp/app/src/handlers/service_handler.py
-# hypothesis_version: 6.151.10
-
-[200, 201, 204, 400, 404, 500, '/services', '/services/', 'Content-Type', 'Created service %s', 'DELETE', 'Deleted service %s', 'DynamoDB error', 'GET', 'Invalid JSON', 'Listed %d services', 'POST', 'Received %s %s', 'Retrieved service %s', 'Route not found', 'Service not found', 'Unhandled error', 'application/json', 'aws_request_id', 'body', 'error', 'errors', 'function_name', 'headers', 'http', 'method', 'pathParameters', 'rawPath', 'requestContext', 'service_id', 'statusCode', 'unknown']

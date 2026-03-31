@@ -1,4 +1,0 @@
-# file: /Users/elijahtorrence/platform-service-idp/platform-service-idp/app/src/utils/logger.py
-# hypothesis_version: 6.151.10
-
-['INFO', 'LOG_LEVEL', 'function_name', 'level', 'message', 'request_id', 'timestamp']

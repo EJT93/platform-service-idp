@@ -1,4 +1,0 @@
-# file: /Users/elijahtorrence/platform-service-idp/platform-service-idp/app/src/models/service_model.py
-# hypothesis_version: 6.151.10
-
-['created_at', 'description', 'name', 'owner', 'runtime', 'service_id', 'updated_at']
