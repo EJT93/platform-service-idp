@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-03-31T04:00:00.000Z" agent="Kiro" version="24.0.0" type="device">
+  <diagram id="service-detail" name="Service Detail — Request Flow">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- Title -->
+        <mxCell id="title" value="Service Detail — Lambda Request Flow &amp; Data Layer" style="text;html=1;fontSize=20;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="300" y="10" width="500" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== SERVICE CATALOG (Left Side) ===== -->
+        <mxCell id="sc_title" value="Service Catalog API" style="text;html=1;fontSize=14;fontStyle=5;align=center;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="100" y="50" width="200" height="25" as="geometry"/>
+        </mxCell>
+
+        <!-- API GW Route -->
+        <mxCell id="sc_route" value="API Gateway v2&#xa;$default route" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="120" y="90" width="140" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Lambda Handler -->
+        <mxCell id="sc_handler" value="service_handler.py&#xa;handler(event, context)" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="170" width="170" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- Route parsing -->
+        <mxCell id="sc_parse" value="Parse rawPath +&#xa;requestContext.http.method" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fillColor=#FFFFFF;strokeColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="100" y="250" width="170" height="35" as="geometry"/>
+        </mxCell>
+
+        <!-- Route branches -->
+        <mxCell id="sc_post" value="POST /services&#xa;→ validate → create" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="20" y="320" width="120" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="sc_getall" value="GET /services&#xa;→ list (scan)" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="160" y="320" width="110" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="sc_getone" value="GET /services/{id}&#xa;→ get by key" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="20" y="380" width="120" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="sc_delete" value="DELETE /services/{id}&#xa;→ delete by key" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="160" y="380" width="110" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Validator -->
+        <mxCell id="sc_validator" value="validator.py&#xa;validate_create_service()" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="20" y="450" width="130" height="35" as="geometry"/>
+        </mxCell>
+
+        <!-- DynamoDB Service -->
+        <mxCell id="sc_dbsvc" value="dynamodb_service.py&#xa;DynamoDBService" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="520" width="170" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- SSM Resolution -->
+        <mxCell id="sc_ssm" value="SSM Parameter Store&#xa;/platform-service/dev/&#xa;dynamodb-table-name" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="20" y="590" width="140" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- DynamoDB -->
+        <mxCell id="sc_ddb" value="DynamoDB&#xa;platform-services-dev&#xa;(hash_key: service_id)" style="shape=cylinder3;whiteSpace=wrap;html=1;fontSize=9;fillColor=#dae8fc;strokeColor=#6c8ebf;size=10;" vertex="1" parent="1">
+          <mxGeometry x="190" y="580" width="140" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- Service Catalog arrows -->
+        <mxCell id="sa1" style="strokeWidth=1;" edge="1" source="sc_route" target="sc_handler" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="sa2" style="strokeWidth=1;" edge="1" source="sc_handler" target="sc_parse" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="sa3" style="strokeWidth=1;" edge="1" source="sc_parse" target="sc_post" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="sa4" style="strokeWidth=1;" edge="1" source="sc_parse" target="sc_getall" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="sa7" style="strokeWidth=1;" edge="1" source="sc_dbsvc" target="sc_ssm" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="sa8" style="strokeWidth=1;" edge="1" source="sc_dbsvc" target="sc_ddb" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- ===== AUDIT (Right Side) ===== -->
+        <mxCell id="au_title" value="Platform Audit" style="text;html=1;fontSize=14;fontStyle=5;align=center;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="550" y="50" width="200" height="25" as="geometry"/>
+        </mxCell>
+
+        <!-- API GW Route -->
+        <mxCell id="au_route" value="API Gateway v2&#xa;GET /platform/audit" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="560" y="90" width="160" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Audit Handler -->
+        <mxCell id="au_handler" value="audit_handler.py&#xa;handler(event, context)" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="555" y="170" width="170" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- Build Report -->
+        <mxCell id="au_build" value="_build_audit_report()" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;fillColor=#FFFFFF;strokeColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="570" y="250" width="140" height="35" as="geometry"/>
+        </mxCell>
+
+        <!-- Audit functions -->
+        <mxCell id="au_s3" value="_audit_s3()&#xa;• encryption&#xa;• public access" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=5;" vertex="1" parent="1">
+          <mxGeometry x="480" y="320" width="110" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="au_ddb" value="_audit_dynamodb()&#xa;• PITR status&#xa;• encryption" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=5;" vertex="1" parent="1">
+          <mxGeometry x="610" y="320" width="110" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="au_lam" value="_audit_lambda()&#xa;• runtime&#xa;• memory/timeout" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=5;" vertex="1" parent="1">
+          <mxGeometry x="480" y="390" width="110" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="au_logs" value="_audit_log_groups()&#xa;• retention days&#xa;• stored bytes" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=5;" vertex="1" parent="1">
+          <mxGeometry x="610" y="390" width="110" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Write to S3 -->
+        <mxCell id="au_write" value="_write_to_s3()&#xa;audit-reports/*.json" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="555" y="480" width="170" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- S3 Bucket -->
+        <mxCell id="au_s3bucket" value="S3: platform-service-&#xa;artifacts-dev&#xa;/audit-reports/" style="shape=cylinder3;whiteSpace=wrap;html=1;fontSize=9;fillColor=#dae8fc;strokeColor=#6c8ebf;size=10;" vertex="1" parent="1">
+          <mxGeometry x="565" y="560" width="150" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- Return JSON -->
+        <mxCell id="au_return" value="Return JSON&#xa;report to caller" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="770" y="480" width="120" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Audit arrows -->
+        <mxCell id="aa1" style="strokeWidth=1;" edge="1" source="au_route" target="au_handler" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="aa2" style="strokeWidth=1;" edge="1" source="au_handler" target="au_build" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="aa3" style="strokeWidth=1;" edge="1" source="au_build" target="au_s3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="aa4" style="strokeWidth=1;" edge="1" source="au_build" target="au_ddb" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="aa7" style="strokeWidth=1;" edge="1" source="au_write" target="au_s3bucket" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- ===== SHARED: Observability ===== -->
+        <mxCell id="obs_title" value="Shared: Observability" style="text;html=1;fontSize=14;fontStyle=5;align=center;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="900" y="50" width="200" height="25" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="obs_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#CCCCCC;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="870" y="80" width="230" height="280" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="obs_logger" value="utils/logger.py&#xa;Structured JSON Logger&#xa;{timestamp, level, message,&#xa; request_id, function_name}" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fillColor=#FFFFFF;strokeColor=#999999;align=left;spacingLeft=5;" vertex="1" parent="1">
+          <mxGeometry x="885" y="95" width="200" height="55" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="obs_cw" value="CloudWatch Logs&#xa;/aws/lambda/platform-service-dev&#xa;14-day retention" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=5;" vertex="1" parent="1">
+          <mxGeometry x="885" y="165" width="200" height="45" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="obs_alarm" value="CloudWatch Alarm&#xa;Lambda Errors &gt; 0 / 5min" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=5;" vertex="1" parent="1">
+          <mxGeometry x="885" y="225" width="200" height="35" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="obs_sns" value="SNS → Email Subscription&#xa;(configurable alert_emails list)" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fillColor=#ffe6cc;strokeColor=#d79b00;align=left;spacingLeft=5;" vertex="1" parent="1">
+          <mxGeometry x="885" y="275" width="200" height="35" as="geometry"/>
+        </mxCell>
+
+        <!-- Obs arrows -->
+        <mxCell id="oa1" style="strokeWidth=1;strokeColor=#999999;" edge="1" source="obs_logger" target="obs_cw" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="oa2" style="strokeWidth=1;strokeColor=#CC0000;" edge="1" source="obs_alarm" target="obs_sns" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- IAM Note -->
+        <mxCell id="iam_note" value="IAM: Separate roles per Lambda.&#xa;Service Catalog: DynamoDB + SSM read.&#xa;Audit: Read-only S3/DDB/Lambda/Logs + S3 write for reports.&#xa;No wildcard policies." style="shape=note;whiteSpace=wrap;html=1;fontSize=8;fillColor=#ffe6cc;strokeColor=#d79b00;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="870" y="400" width="250" height="65" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

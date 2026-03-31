@@ -1,11 +1,140 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Open this file in draw.io / diagrams.net to edit the architecture diagram -->
-<mxfile>
-  <diagram name="Platform Service Architecture">
-    <mxGraphModel>
+<mxfile host="app.diagrams.net" modified="2026-03-31T04:00:00.000Z" agent="Kiro" version="24.0.0" type="device">
+  <diagram id="high-level" name="High-Level Architecture">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="0">
       <root>
         <mxCell id="0"/>
         <mxCell id="1" parent="0"/>
+
+        <!-- Title -->
+        <mxCell id="title" value="Platform Service IDP — High-Level Architecture" style="text;html=1;fontSize=20;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="400" y="20" width="500" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Client -->
+        <mxCell id="client" value="Client&#xa;(curl / Postman / Internal Tool)" style="shape=actor;whiteSpace=wrap;html=1;fontSize=12;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="600" y="80" width="120" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- API Gateway -->
+        <mxCell id="apigw" value="API Gateway v2&#xa;(HTTP API)" style="shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.api_gateway;labelBackgroundColor=none;sketch=0;fontStyle=1;fontSize=11;fillColor=#FF9900;fontColor=#232F3E;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="600" y="190" width="120" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrow: Client -> APIGW -->
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#333333;" edge="1" source="client" target="apigw" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1label" value="HTTPS" style="edgeLabel;html=1;fontSize=10;fontColor=#666666;" vertex="1" connectable="0" parent="e1">
+          <mxGeometry x="-0.2" relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Service Catalog Lambda -->
+        <mxCell id="lambda1" value="Lambda: Service&#xa;Catalog API&#xa;(Python 3.12)" style="shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.lambda_function;labelBackgroundColor=none;sketch=0;fontStyle=1;fontSize=10;fillColor=#FF9900;fontColor=#232F3E;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="380" y="320" width="140" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- Audit Lambda -->
+        <mxCell id="lambda2" value="Lambda: Platform&#xa;Audit&#xa;(Python 3.12)" style="shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.lambda_function;labelBackgroundColor=none;sketch=0;fontStyle=1;fontSize=10;fillColor=#FF9900;fontColor=#232F3E;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="780" y="320" width="140" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrow: APIGW -> Lambda1 -->
+        <mxCell id="e2" value="$default route" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#333333;fontSize=10;fontColor=#666666;" edge="1" source="apigw" target="lambda1" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrow: APIGW -> Lambda2 -->
+        <mxCell id="e3" value="GET /platform/audit" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#333333;fontSize=10;fontColor=#666666;" edge="1" source="apigw" target="lambda2" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- SSM Parameter Store -->
+        <mxCell id="ssm" value="SSM Parameter&#xa;Store" style="shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.systems_manager_parameter_store;labelBackgroundColor=none;sketch=0;fontStyle=1;fontSize=10;fillColor=#FF9900;fontColor=#232F3E;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="180" y="320" width="120" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- DynamoDB -->
+        <mxCell id="ddb" value="DynamoDB&#xa;platform-services" style="shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.dynamodb;labelBackgroundColor=none;sketch=0;fontStyle=1;fontSize=10;fillColor=#FF9900;fontColor=#232F3E;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="380" y="460" width="140" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- S3 Bucket -->
+        <mxCell id="s3" value="S3: Artifacts&#xa;+ Audit Reports" style="shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.s3;labelBackgroundColor=none;sketch=0;fontStyle=1;fontSize=10;fillColor=#FF9900;fontColor=#232F3E;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="780" y="460" width="140" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrow: Lambda1 -> SSM -->
+        <mxCell id="e4" value="resolve config" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1;strokeColor=#999999;dashed=1;fontSize=9;fontColor=#999999;" edge="1" source="lambda1" target="ssm" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrow: Lambda1 -> DynamoDB -->
+        <mxCell id="e5" value="CRUD" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#333333;fontSize=10;fontColor=#666666;" edge="1" source="lambda1" target="ddb" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrow: Lambda2 -> S3 -->
+        <mxCell id="e6" value="write reports" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#333333;fontSize=10;fontColor=#666666;" edge="1" source="lambda2" target="s3" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Observability Box -->
+        <mxCell id="obsbox" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#CCCCCC;dashed=1;dashPattern=5 5;" vertex="1" parent="1">
+          <mxGeometry x="350" y="590" width="620" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="obstitle" value="Observability" style="text;html=1;fontSize=13;fontStyle=1;align=left;verticalAlign=top;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="360" y="595" width="120" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- CloudWatch Logs -->
+        <mxCell id="cwlogs" value="CloudWatch Logs&#xa;(14-day retention)" style="shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.cloudwatch;labelBackgroundColor=none;sketch=0;fontSize=9;fillColor=#FF9900;fontColor=#232F3E;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="370" y="625" width="120" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- CloudWatch Alarm -->
+        <mxCell id="cwalarm" value="CloudWatch Alarm&#xa;(Errors > 0)" style="shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.cloudwatch_alarm;labelBackgroundColor=none;sketch=0;fontSize=9;fillColor=#FF9900;fontColor=#232F3E;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="560" y="625" width="120" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- SNS -->
+        <mxCell id="sns" value="SNS Topic&#xa;→ Email Alerts" style="shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.sns;labelBackgroundColor=none;sketch=0;fontSize=9;fillColor=#FF9900;fontColor=#232F3E;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="750" y="625" width="120" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrow: CWAlarm -> SNS -->
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1;strokeColor=#CC0000;" edge="1" source="cwalarm" target="sns" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- CI/CD Box -->
+        <mxCell id="cicdbox" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;dashed=1;dashPattern=5 5;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="80" width="250" height="250" as="geometry"/>
+        </mxCell>
+        <mxCell id="cicdtitle" value="CI/CD" style="text;html=1;fontSize=13;fontStyle=1;align=left;verticalAlign=top;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="85" width="80" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- GitHub -->
+        <mxCell id="github" value="GitHub&#xa;Actions" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=none;verticalAlign=top;aspect=fixed;imageAspect=0;fontSize=10;image=https://cdn-icons-png.flaticon.com/512/25/25231.png;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="115" width="50" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- OIDC -->
+        <mxCell id="oidc" value="OIDC&#xa;Provider" style="shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.iam;labelBackgroundColor=none;sketch=0;fontSize=9;fillColor=#FF9900;fontColor=#232F3E;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="200" width="50" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- TF State -->
+        <mxCell id="tfstate" value="S3 State&#xa;+ DDB Lock" style="shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.s3;labelBackgroundColor=none;sketch=0;fontSize=9;fillColor=#FF9900;fontColor=#232F3E;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="200" width="50" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrow: GitHub -> OIDC -->
+        <mxCell id="e8" value="assume role" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1;strokeColor=#6c8ebf;fontSize=9;fontColor=#6c8ebf;" edge="1" source="github" target="oidc" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
       </root>
     </mxGraphModel>
   </diagram>
