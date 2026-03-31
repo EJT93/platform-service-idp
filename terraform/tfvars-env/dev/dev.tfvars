@@ -1,0 +1,5 @@
+aws_region = "us-east-2"
+environment = "dev"
+project_name = "platform-service"
+lambda_s3_bucket = ""
+lambda_s3_key = "lambda/package.zip""

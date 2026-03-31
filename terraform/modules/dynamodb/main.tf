@@ -1,10 +1,10 @@
 resource "aws_dynamodb_table" "this" {
   name         = var.table_name
   billing_mode = var.billing_mode
-  hash_key     = "item_id"
+  hash_key     = "service_id"
 
   attribute {
-    name = "item_id"
+    name = "service_id"
     type = "S"
   }
 

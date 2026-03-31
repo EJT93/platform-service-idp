@@ -1,33 +1,3 @@
-terraform {
-  required_version = ">= 1.5"
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-  }
-}
-
-provider "aws" {
-  region = var.aws_region
-
-  default_tags {
-    tags = {
-      Environment = var.environment
-      Project     = var.project_name
-      ManagedBy   = "terraform"
-    }
-  }
-}
-
-locals {
-  function_name = "${var.project_name}-${var.environment}"
-  tags = {
-    Environment = var.environment
-    Project     = var.project_name
-  }
-}
-
 # --- Modules ---
 
 module "s3" {
@@ -38,7 +8,7 @@ module "s3" {
 
 module "dynamodb" {
   source     = "../../modules/dynamodb"
-  table_name = "${var.project_name}-${var.environment}"
+  table_name = "platform-services-${var.environment}"
   tags       = local.tags
 }
 

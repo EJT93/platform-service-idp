@@ -1,4 +1,4 @@
-name: CI — Lint + Validate + Plan
+name: CI — Lint + Test + Validate + Plan
 
 on:
   pull_request:
@@ -14,6 +14,16 @@ jobs:
           python-version: "3.12"
       - run: pip install ruff
       - run: ruff check app/src/
+
+  python-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r app/requirements.txt
+      - run: PYTHONPATH=app python -m pytest app/tests/ -v
 
   terraform-validate:
     runs-on: ubuntu-latest

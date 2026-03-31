@@ -2,7 +2,7 @@ run "validate_plan" {
   command = plan
 
   variables {
-    aws_region    = "us-east-1"
+    aws_region    = "us-east-2"
     environment   = "test"
     project_name  = "platform-service"
     lambda_s3_key = "lambda/test.zip"
