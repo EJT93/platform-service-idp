@@ -18,6 +18,13 @@ resource "aws_lambda_function" "audit" {
   tags = var.tags
 }
 
+# Log group with retention for audit Lambda
+resource "aws_cloudwatch_log_group" "audit" {
+  name              = "/aws/lambda/${var.function_name}"
+  retention_in_days = 14
+  tags              = var.tags
+}
+
 # Route: GET /platform/audit
 resource "aws_apigatewayv2_integration" "audit" {
   api_id                 = var.api_id
