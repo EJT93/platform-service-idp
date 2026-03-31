@@ -12,7 +12,7 @@ variable "log_retention_days" {
 variable "error_threshold" {
   description = "Error count threshold for alarm"
   type        = number
-  default     = 5
+  default     = 0
 }
 
 variable "tags" {

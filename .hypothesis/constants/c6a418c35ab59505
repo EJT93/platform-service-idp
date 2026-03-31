@@ -1,0 +1,4 @@
+# file: /Users/elijahtorrence/platform-service-idp/platform-service-idp/app/src/services/dynamodb_service.py
+# hypothesis_version: 6.151.10
+
+['Created service %s', 'DYNAMODB_TABLE', 'Deleted service %s', 'Item', 'Items', 'dynamodb', 'service_id']

@@ -1,3 +1,5 @@
+# --- Outputs ---
+
 output "api_endpoint" {
   value = module.lambda_api.api_endpoint
 }
@@ -12,4 +14,8 @@ output "dynamodb_table" {
 
 output "s3_bucket" {
   value = module.s3.bucket_name
+}
+
+output "github_actions_role_arn" {
+  value = module.github_oidc.role_arn
 }
