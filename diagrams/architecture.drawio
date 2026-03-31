@@ -1,11 +1,140 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Open this file in draw.io / diagrams.net to edit the architecture diagram -->
-<mxfile>
-  <diagram name="Platform Service Architecture">
-    <mxGraphModel>
+<mxfile host="app.diagrams.net" modified="2026-03-31T04:30:00.000Z" agent="Kiro" version="24.0.0" type="device">
+  <diagram id="high-level" name="High-Level Architecture">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1050" math="0" shadow="0">
       <root>
         <mxCell id="0"/>
         <mxCell id="1" parent="0"/>
+
+        <!-- Title -->
+        <mxCell id="title" value="Platform Service IDP — High-Level Architecture" style="text;html=1;fontSize=22;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="350" y="10" width="550" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Client -->
+        <mxCell id="client" value="Client&#xa;curl / Postman / Internal Tool" style="shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.client;verticalLabelPosition=bottom;verticalAlign=top;align=center;sketch=0;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="576" y="70" width="48" height="48" as="geometry"/>
+        </mxCell>
+
+        <!-- API Gateway -->
+        <mxCell id="apigw" value="&lt;b&gt;API Gateway v2 (HTTP API)&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;platform-service-dev-api&lt;/font&gt;" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#E7157B;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.api_gateway;" vertex="1" parent="1">
+          <mxGeometry x="576" y="190" width="48" height="48" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrow: Client -> APIGW -->
+        <mxCell id="e1" value="HTTPS" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#333333;fontSize=10;fontColor=#666666;" edge="1" source="client" target="apigw" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Service Catalog Lambda -->
+        <mxCell id="lambda1" value="&lt;b&gt;Service Catalog API&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;Python 3.12&lt;br&gt;POST/GET/DELETE /services&lt;/font&gt;" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#ED7100;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.lambda;" vertex="1" parent="1">
+          <mxGeometry x="346" y="330" width="48" height="48" as="geometry"/>
+        </mxCell>
+
+        <!-- Audit Lambda -->
+        <mxCell id="lambda2" value="&lt;b&gt;Platform Audit&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;Python 3.12&lt;br&gt;GET /platform/audit&lt;/font&gt;" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#ED7100;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.lambda;" vertex="1" parent="1">
+          <mxGeometry x="846" y="330" width="48" height="48" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrow: APIGW -> Lambda1 -->
+        <mxCell id="e2" value="$default route" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#555555;fontSize=9;fontColor=#666666;" edge="1" source="apigw" target="lambda1" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrow: APIGW -> Lambda2 -->
+        <mxCell id="e3" value="GET /platform/audit" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#555555;fontSize=9;fontColor=#666666;" edge="1" source="apigw" target="lambda2" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- SSM Parameter Store -->
+        <mxCell id="ssm" value="&lt;b&gt;SSM Parameter Store&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;/platform-service/dev/*&lt;/font&gt;" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#E7157B;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=10;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.systems_manager;" vertex="1" parent="1">
+          <mxGeometry x="90" y="340" width="48" height="48" as="geometry"/>
+        </mxCell>
+
+        <!-- DynamoDB -->
+        <mxCell id="ddb" value="&lt;b&gt;DynamoDB&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;platform-services-dev&lt;br&gt;PAY_PER_REQUEST | PITR&lt;/font&gt;" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#C925D1;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=10;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.dynamodb;" vertex="1" parent="1">
+          <mxGeometry x="346" y="500" width="48" height="48" as="geometry"/>
+        </mxCell>
+
+        <!-- S3 Bucket -->
+        <mxCell id="s3" value="&lt;b&gt;S3: Artifacts + Audit Reports&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;platform-service-artifacts-dev&lt;br&gt;Versioned | KMS | Public blocked&lt;/font&gt;" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#3F8624;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=10;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.s3;" vertex="1" parent="1">
+          <mxGeometry x="846" y="500" width="48" height="48" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrow: Lambda1 -> SSM -->
+        <mxCell id="e4" value="resolve config" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1;strokeColor=#999999;dashed=1;fontSize=9;fontColor=#999999;" edge="1" source="lambda1" target="ssm" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrow: Lambda1 -> DynamoDB -->
+        <mxCell id="e5" value="CRUD" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#555555;fontSize=10;fontColor=#666666;" edge="1" source="lambda1" target="ddb" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrow: Lambda2 -> S3 -->
+        <mxCell id="e6" value="write reports" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#555555;fontSize=10;fontColor=#666666;" edge="1" source="lambda2" target="s3" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Observability Box -->
+        <mxCell id="obsbox" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#CCCCCC;dashed=1;dashPattern=5 5;" vertex="1" parent="1">
+          <mxGeometry x="180" y="660" width="880" height="110" as="geometry"/>
+        </mxCell>
+        <mxCell id="obstitle" value="Observability" style="text;html=1;fontSize=14;fontStyle=1;align=left;verticalAlign=top;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="190" y="665" width="120" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- CloudWatch Logs -->
+        <mxCell id="cwlogs" value="&lt;b&gt;CloudWatch Logs&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;14-day retention&lt;/font&gt;" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#E7157B;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=10;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.cloudwatch;" vertex="1" parent="1">
+          <mxGeometry x="260" y="695" width="40" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- CloudWatch Alarm -->
+        <mxCell id="cwalarm" value="&lt;b&gt;CloudWatch Alarm&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;Lambda Errors &amp;gt; 0 / 5min&lt;/font&gt;" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#E7157B;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=10;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.cloudwatch;" vertex="1" parent="1">
+          <mxGeometry x="560" y="695" width="40" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- SNS -->
+        <mxCell id="sns" value="&lt;b&gt;SNS → Email Alerts&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;platform-service-dev-alerts&lt;/font&gt;" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#E7157B;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=10;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.sns;" vertex="1" parent="1">
+          <mxGeometry x="870" y="695" width="40" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrow: CWAlarm -> SNS -->
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#CC0000;" edge="1" source="cwalarm" target="sns" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- CI/CD Box -->
+        <mxCell id="cicdbox" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;dashed=1;dashPattern=5 5;" vertex="1" parent="1">
+          <mxGeometry x="180" y="840" width="880" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="cicdtitle" value="CI/CD &amp; State Management" style="text;html=1;fontSize=14;fontStyle=1;align=left;verticalAlign=top;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="190" y="845" width="250" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- GitHub Actions -->
+        <mxCell id="github" value="&lt;b&gt;GitHub Actions&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;CI (PR) + Deploy (merge)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontStyle=0;fillColor=#FFFFFF;strokeColor=#6c8ebf;arcSize=15;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="210" y="875" width="180" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- OIDC -->
+        <mxCell id="oidc" value="&lt;b&gt;GitHub OIDC → IAM Role&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;No static credentials&lt;/font&gt;" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#DD344C;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=10;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.identity_and_access_management;" vertex="1" parent="1">
+          <mxGeometry x="570" y="875" width="40" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- TF State -->
+        <mxCell id="tfstate" value="&lt;b&gt;S3 State + DynamoDB Lock&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;Encrypted | Versioned&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontStyle=0;fillColor=#FFFFFF;strokeColor=#6c8ebf;arcSize=15;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="810" y="875" width="200" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- CI/CD arrows -->
+        <mxCell id="e8" style="strokeWidth=1;strokeColor=#6c8ebf;" edge="1" source="github" target="oidc" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e9" style="strokeWidth=1;strokeColor=#6c8ebf;" edge="1" source="oidc" target="tfstate" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
       </root>
     </mxGraphModel>
   </diagram>

@@ -1,41 +1,79 @@
-# Platform Service Catalog API
+# Platform Service IDP
 
-A self-service REST API for internal teams to register and manage service metadata. Built on a serverless architecture using API Gateway v2, Lambda (Python 3.12), and DynamoDB — all managed by Terraform.
+A self-service Internal Developer Platform (IDP) with two capabilities: a **Service Catalog API** for teams to register and manage service metadata, and a **Platform Audit** endpoint that aggregates operational intelligence across AWS resources. Built on serverless architecture — API Gateway v2, Lambda (Python 3.12), DynamoDB, S3 — all managed by Terraform with CI/CD via GitHub Actions.
 
-## Architecture Overview
+## Architecture
 
+![Architecture Diagram](diagrams/architecture.png)
+
+> Raw draw.io files are in `diagrams/` — open with [app.diagrams.net](https://app.diagrams.net)
+
+```mermaid
+graph TD
+    Client[Client<br/>curl / Postman / Internal Tool] -->|HTTPS| APIGW[API Gateway v2<br/>HTTP API]
+    APIGW -->|$default route| Lambda1[Lambda: Service Catalog API<br/>Python 3.12]
+    APIGW -->|GET /platform/audit| Lambda2[Lambda: Platform Audit<br/>Python 3.12]
+    Lambda1 -->|resolve config| SSM[SSM Parameter Store]
+    Lambda1 -->|CRUD| DDB[(DynamoDB<br/>platform-services-dev)]
+    Lambda2 -->|write reports| S3[(S3: Artifacts + Audit Reports)]
+    Lambda1 & Lambda2 --> CWLogs[CloudWatch Logs<br/>14-day retention]
+    CWLogs --> CWAlarm[CloudWatch Alarm<br/>Errors > 0 / 5min]
+    CWAlarm -->|alert| SNS[SNS → Email]
+    GH[GitHub Actions] -->|OIDC| IAM[IAM Role<br/>No static credentials]
+    IAM --> TFState[(S3 State + DynamoDB Lock)]
 ```
-Client (curl / internal tool)
-    │
-    ▼
-API Gateway v2 (HTTP API)
-    │  AWS_PROXY integration, payload format v2.0
-    ▼
-Lambda (Python 3.12)
-    │  Routes: POST/GET/DELETE /services
-    ▼
-DynamoDB (platform-services-dev)
-    │  PAY_PER_REQUEST, PITR enabled
-    │
-    ├── CloudWatch Logs (structured JSON, 14-day retention)
-    │       └── CloudWatch Alarm (Lambda Errors, Sum > 0 / 5 min)
-    │               └── SNS Topic (alerts)
-    │
-    └── S3 (artifacts bucket, versioned, KMS-encrypted)
-```
 
-**Request flow**: Client sends an HTTP request → API Gateway forwards it to Lambda via proxy integration → Lambda handler parses the v2 event (`rawPath`, `requestContext.http.method`, `pathParameters`), validates input, delegates to the DynamoDB service layer, and returns a JSON response. All operations emit structured JSON logs to CloudWatch.
+## What This Does
+
+**Service Catalog API** — Internal teams register services (name, owner, description, runtime) via REST endpoints. Data persists in DynamoDB. This is the "developer portal backend" pattern from the assessment.
+
+**Platform Audit** — A single `GET /platform/audit` call scans your AWS account and returns a JSON report covering S3 encryption status, DynamoDB backup configuration, Lambda function settings, and CloudWatch log retention. Reports are also written to S3 for historical tracking.
+
+## Design Rationale
+
+I chose Lambda over ECS because the service handles simple CRUD operations with no long-running processes — Lambda scales to zero, eliminates container management overhead, and reduces Terraform surface area. Cold start latency is acceptable for an internal API. The alternative was ECS Fargate, which would add a load balancer, task definitions, and capacity planning for no meaningful benefit at this scale.
+
+DynamoDB was selected over RDS Aurora because the data model is a natural key-value fit (UUID primary key, simple attribute lookups). On-demand billing means zero capacity planning, no connection pooling, and no VPC configuration. If the service evolved to need relational queries or joins, RDS would be reconsidered — but for the current access patterns, DynamoDB is simpler and cheaper.
 
 ## Prerequisites
 
 - Python 3.12+
 - Terraform >= 1.5
-- AWS CLI configured with appropriate credentials
-- GitHub Actions for CI/CD (runs automatically on PRs and merges)
+- AWS CLI configured with SSO or IAM credentials
+- GitHub repo with `AWS_ROLE_ARN` secret set (for CI/CD)
 
-## Getting Started
+## Deploy
 
-### Local Development
+### 1. Bootstrap (first time only)
+
+```bash
+# Authenticate to AWS
+aws sso login
+
+# Deploy infrastructure
+cd terraform
+terraform init
+terraform plan -var-file=tfvars-env/dev/dev.tfvars
+terraform apply -var-file=tfvars-env/dev/dev.tfvars
+
+# Package and upload Lambda code
+./scripts/package-lambda.sh --upload platform-service-artifacts-dev lambda/package.zip
+
+# Update Lambda functions with new code
+aws lambda update-function-code --function-name platform-service-dev \
+  --s3-bucket platform-service-artifacts-dev --s3-key lambda/package.zip --region us-east-2
+aws lambda update-function-code --function-name platform-service-dev-audit \
+  --s3-bucket platform-service-artifacts-dev --s3-key lambda/package.zip --region us-east-2
+```
+
+### 2. CI/CD (ongoing)
+
+After bootstrap, all deployments go through GitHub Actions:
+
+- **Pull Requests → main**: CI runs lint, tests, `terraform validate`, `terraform fmt`, `terraform plan`
+- **Merge to main**: Deploy pipeline packages Lambda, uploads to S3, runs `terraform apply`
+
+### 3. Local Development
 
 ```bash
 cd app
@@ -43,164 +81,86 @@ pip install -r requirements.txt
 PYTHONPATH=app python -m pytest app/tests/ -v
 ```
 
-### Deploy Infrastructure
+## API Reference
 
-```bash
-cd terraform
-terraform init
-terraform plan -var-file=tfvars-env/dev/dev.tfvars
-terraform apply -var-file=tfvars-env/dev/dev.tfvars
-```
+Base URL: your API Gateway endpoint from `terraform output api_endpoint`
 
-## API Usage
+### Service Catalog
 
-Replace `$API_URL` with your API Gateway endpoint (e.g., `https://abc123.execute-api.us-east-1.amazonaws.com`).
+| Method | Path | Description | Status |
+|--------|------|-------------|--------|
+| `POST` | `/services` | Register a new service | 201 |
+| `GET` | `/services` | List all services | 200 |
+| `GET` | `/services/{id}` | Get a service by ID | 200 / 404 |
+| `DELETE` | `/services/{id}` | Delete a service | 204 |
 
-### Create a Service
-
+**Create a service:**
 ```bash
 curl -X POST "$API_URL/services" \
   -H "Content-Type: application/json" \
-  -d '{
-    "name": "auth-service",
-    "owner": "platform-team",
-    "description": "Handles authentication and authorization",
-    "runtime": "python3.12"
-  }'
+  -d '{"name": "auth-service", "owner": "platform-team", "description": "Auth service", "runtime": "python3.12"}'
 ```
 
-Response (201):
-```json
-{
-  "service_id": "550e8400-e29b-41d4-a716-446655440000",
-  "name": "auth-service",
-  "owner": "platform-team",
-  "description": "Handles authentication and authorization",
-  "runtime": "python3.12",
-  "created_at": "2025-01-15T10:30:00+00:00",
-  "updated_at": "2025-01-15T10:30:00+00:00"
-}
-```
+### Platform Audit
 
-### List All Services
+| Method | Path | Description | Status |
+|--------|------|-------------|--------|
+| `GET` | `/platform/audit` | Run platform audit | 200 |
 
-```bash
-curl "$API_URL/services"
-```
+Returns a JSON report with `s3_buckets`, `dynamodb_tables`, `lambda_functions`, `cloudwatch_log_groups`, and a `summary` with `issues_found`. Also writes the report to `s3://platform-service-artifacts-dev/audit-reports/`.
 
-Response (200):
-```json
-[
-  {
-    "service_id": "550e8400-e29b-41d4-a716-446655440000",
-    "name": "auth-service",
-    "owner": "platform-team",
-    "description": "Handles authentication and authorization",
-    "runtime": "python3.12",
-    "created_at": "2025-01-15T10:30:00+00:00",
-    "updated_at": "2025-01-15T10:30:00+00:00"
-  }
-]
-```
+## Terraform Modules
 
-### Get a Service
-
-```bash
-curl "$API_URL/services/{service_id}"
-```
-
-Response (200): Single service record JSON object.
-
-Response (404):
-```json
-{
-  "error": "Service not found"
-}
-```
-
-### Delete a Service
-
-```bash
-curl -X DELETE "$API_URL/services/{service_id}"
-```
-
-Response (204): Empty body.
-
-## Design Rationale
-
-| Decision | Rationale |
-|----------|-----------|
-| **Lambda** | No long-running processes. Scales to zero with minimal ops overhead. Cold start is acceptable for an internal API. |
-| **DynamoDB** | Schemaless, serverless, key-value access pattern fits the data model. PAY_PER_REQUEST means no capacity planning. |
-| **API Gateway v2 (HTTP API)** | Lower latency and cost than REST API (v1). Proxy integration simplifies routing. Sufficient for internal use. |
-| **Single Lambda function** | All 4 routes handled by one function. No need for per-route functions at this scale. |
-| **Structured JSON logging** | Enables querying and debugging via CloudWatch Logs Insights. Each log entry includes `request_id` and `function_name` for traceability. |
-| **Terraform modules** | Reproducible, auditable infrastructure. Modular design (DynamoDB, IAM, Lambda, Observability, S3) for reuse and separation of concerns. |
+| Module | Purpose |
+|--------|---------|
+| `s3` | Artifacts bucket — versioned, KMS encrypted, public access blocked |
+| `dynamodb` | Service catalog table — PAY_PER_REQUEST, PITR enabled |
+| `iam` | Lambda execution role — DynamoDB + SSM read, no wildcards |
+| `lambda_api` | Service Catalog Lambda + API Gateway v2 |
+| `audit` | Audit Lambda + API Gateway route |
+| `audit_iam` | Audit Lambda role — read-only AWS access + S3 write for reports |
+| `observability` | CloudWatch Logs (14-day retention), Alarm (errors > 0), SNS topic |
+| `notifications` | SNS email subscriptions (configurable list) |
+| `github_oidc` | GitHub Actions OIDC provider + deploy IAM role |
 
 ## Repository Structure
 
 ```
-platform-service-idp/
 ├── app/
 │   ├── src/
-│   │   ├── handlers/
-│   │   │   └── service_handler.py    # Lambda entry point, HTTP routing
-│   │   ├── models/
-│   │   │   └── service_model.py      # ServiceRecord dataclass
-│   │   ├── services/
-│   │   │   └── dynamodb_service.py   # DynamoDB CRUD operations
-│   │   └── utils/
-│   │       ├── logger.py             # Structured JSON logger
-│   │       └── validator.py          # Input validation
-│   ├── tests/
-│   │   ├── test_handler.py           # Handler unit + property tests
-│   │   ├── test_logger.py            # Logger property tests
-│   │   ├── test_model.py             # Model property tests
-│   │   ├── test_service.py           # Service layer property tests
-│   │   └── test_validator.py         # Validator property tests
+│   │   ├── handlers/          # Lambda entry points
+│   │   ├── models/            # Data models
+│   │   ├── services/          # DynamoDB service layer
+│   │   └── utils/             # Logger, validator
+│   ├── tests/                 # Unit + property tests
 │   ├── Dockerfile
 │   └── requirements.txt
 ├── terraform/
-│   ├── main.tf                       # Module composition
-│   ├── variables.tf
-│   ├── outputs.tf
-│   ├── backend.tf
-│   ├── provider.tf
-│   ├── locals.tf
-│   ├── tfvars-env/
-│   │   └── dev/
-│   │       └── dev.tfvars
-│   ├── modules/
-│   │   ├── dynamodb/                 # DynamoDB table (service_id key, PITR)
-│   │   ├── github_oidc/             # GitHub Actions OIDC provider + IAM role
-│   │   ├── iam/                      # Lambda execution role (least-privilege)
-│   │   ├── lambda_api/               # Lambda + API Gateway v2
-│   │   ├── notifications/            # SNS email subscriptions
-│   │   ├── observability/            # CloudWatch Logs, Alarm, SNS
-│   │   └── s3/                       # Artifacts bucket (versioned, KMS)
-│   └── tests/
-│       └── basic.tftest.hcl
-├── .github/
-│   └── workflows/
-│       ├── ci.yml                    # PR: lint + test + fmt + validate + plan
-│       └── deploy.yml                # Merge to main: package + upload + apply
-├── diagrams/
-│   ├── architecture.drawio
-│   └── architecture.png
-├── docs/
-│   ├── DECISIONS.md                  # Architectural Decision Records
-│   └── AI_WORKFLOW.md                # AI tool usage documentation
-├── .ai/                              # AI steering files and prompts
+│   ├── main.tf                # Module composition + SSM parameters
+│   ├── modules/               # 9 reusable modules
+│   ├── tfvars-env/dev/        # Environment-specific variables
+│   └── tests/                 # Terraform test (basic.tftest.hcl)
+├── scripts/
+│   └── package-lambda.sh      # Lambda packaging + S3 upload
+├── .github/workflows/
+│   ├── ci.yml                 # PR: lint + test + validate + plan
+│   └── deploy.yml             # Merge: package + upload + apply
+├── diagrams/                  # draw.io files + exported PNGs
+├── .ai/                       # AI steering files and prompts
+├── KIRO.md                    # AI agent configuration
 └── README.md
 ```
 
-## CI/CD
+## Observability
 
-- **Pull Requests** trigger the CI pipeline (`ci.yml`): ruff lint, pytest, `terraform fmt -check`, `terraform validate`, and `terraform plan`.
-- **Merges to main** trigger the deploy pipeline (`deploy.yml`): Lambda code packaging, S3 upload, and `terraform apply`.
+- **Structured JSON logging** — every log entry includes `timestamp`, `level`, `message`, `request_id`, `function_name`
+- **CloudWatch Alarm** — fires when Lambda error count > 0 in a 5-minute window
+- **SNS notifications** — alarm triggers email alerts to configured recipients
+- **Log retention** — 14 days on all Lambda log groups
 
 ## Known Limitations
 
-- **Authentication**: Deferred to a future phase. The API is currently unauthenticated.
-- **Pagination**: The `GET /services` endpoint returns all records via a DynamoDB Scan with no pagination.
-- **Environment**: Only a `dev` environment is configured. Production and staging environments are not yet set up.
+- **Authentication**: API is unauthenticated. API key or IAM auth planned for next iteration.
+- **Pagination**: `GET /services` returns all records via DynamoDB Scan.
+- **Environment**: Only `dev` is configured. Nonprod/prod tfvars directories exist but are empty.
+- **Audit scope**: Read-only audit uses `*` resource for list/describe operations (DynamoDB, Lambda, CloudWatch). Scoped to the deploy account only.

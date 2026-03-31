@@ -38,3 +38,19 @@ resource "aws_iam_role_policy" "dynamodb" {
   role   = aws_iam_role.lambda.id
   policy = data.aws_iam_policy_document.dynamodb.json
 }
+
+# SSM Parameter Store access
+data "aws_iam_policy_document" "ssm" {
+  count = length(var.ssm_parameter_arns) > 0 ? 1 : 0
+  statement {
+    actions   = ["ssm:GetParameter"]
+    resources = var.ssm_parameter_arns
+  }
+}
+
+resource "aws_iam_role_policy" "ssm" {
+  count  = length(var.ssm_parameter_arns) > 0 ? 1 : 0
+  name   = "${var.function_name}-ssm"
+  role   = aws_iam_role.lambda.id
+  policy = data.aws_iam_policy_document.ssm[0].json
+}
