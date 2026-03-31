@@ -213,6 +213,7 @@ data "aws_iam_policy_document" "deploy" {
     resources = [
       "arn:aws:logs:${local.region}:${local.account_id}:log-group:/aws/lambda/platform-service-*",
       "arn:aws:logs:${local.region}:${local.account_id}:log-group:/aws/lambda/platform-service-*:*",
+      "arn:aws:logs:${local.region}:${local.account_id}:log-group::log-stream:",
     ]
   }
 
