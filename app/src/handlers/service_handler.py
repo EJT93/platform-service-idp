@@ -42,7 +42,9 @@ def handler(event: dict, context) -> dict:
             return _response(200, services)
 
         elif http_method == "GET" and path.startswith("/services/"):
-            service_id = path_params.get("service_id", "")
+            service_id = path_params.get("service_id") or path.split("/services/")[-1]
+            if not service_id:
+                return _response(400, {"error": "Missing service_id"})
             service = db_service.get_service(service_id)
             if not service:
                 logger.warning("Service not found: %s", service_id)
@@ -51,7 +53,9 @@ def handler(event: dict, context) -> dict:
             return _response(200, service)
 
         elif http_method == "DELETE" and path.startswith("/services/"):
-            service_id = path_params.get("service_id", "")
+            service_id = path_params.get("service_id") or path.split("/services/")[-1]
+            if not service_id:
+                return _response(400, {"error": "Missing service_id"})
             db_service.delete_service(service_id)
             logger.info("Deleted service %s", service_id)
             return _response(204, None)

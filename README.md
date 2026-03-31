@@ -46,12 +46,10 @@ PYTHONPATH=app python -m pytest app/tests/ -v
 ### Deploy Infrastructure
 
 ```bash
-cd terraform/environments/dev
-cp terraform.tfvars.example terraform.tfvars
-# Edit terraform.tfvars with your values
+cd terraform
 terraform init
-terraform plan
-terraform apply
+terraform plan -var-file=tfvars-env/dev/dev.tfvars
+terraform apply -var-file=tfvars-env/dev/dev.tfvars
 ```
 
 ## API Usage
@@ -163,17 +161,21 @@ platform-service-idp/
 │   ├── Dockerfile
 │   └── requirements.txt
 ├── terraform/
-│   ├── environments/
+│   ├── main.tf                       # Module composition
+│   ├── variables.tf
+│   ├── outputs.tf
+│   ├── backend.tf
+│   ├── provider.tf
+│   ├── locals.tf
+│   ├── tfvars-env/
 │   │   └── dev/
-│   │       ├── main.tf               # Module composition
-│   │       ├── variables.tf
-│   │       ├── outputs.tf
-│   │       ├── backend.tf
-│   │       └── terraform.tfvars.example
+│   │       └── dev.tfvars
 │   ├── modules/
 │   │   ├── dynamodb/                 # DynamoDB table (service_id key, PITR)
+│   │   ├── github_oidc/             # GitHub Actions OIDC provider + IAM role
 │   │   ├── iam/                      # Lambda execution role (least-privilege)
 │   │   ├── lambda_api/               # Lambda + API Gateway v2
+│   │   ├── notifications/            # SNS email subscriptions
 │   │   ├── observability/            # CloudWatch Logs, Alarm, SNS
 │   │   └── s3/                       # Artifacts bucket (versioned, KMS)
 │   └── tests/

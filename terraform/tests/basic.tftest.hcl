@@ -6,6 +6,8 @@ run "validate_plan" {
     environment   = "test"
     project_name  = "platform-service"
     lambda_s3_key = "lambda/test.zip"
+    alert_emails  = []
+    github_repo   = "test-org/test-repo"
   }
 
   assert {

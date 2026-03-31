@@ -20,3 +20,14 @@ variable "lambda_s3_key" {
   type        = string
   default     = "lambda/package.zip"
 }
+
+variable "alert_emails" {
+  description = "List of email addresses to receive CloudWatch alarm notifications"
+  type        = list(string)
+  default     = []
+}
+
+variable "github_repo" {
+  description = "GitHub repository in format 'owner/repo' for OIDC trust"
+  type        = string
+}

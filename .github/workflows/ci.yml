@@ -29,13 +29,13 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: terraform/environments/dev
+        working-directory: terraform
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
       - run: terraform init -backend=false
       - run: terraform validate
-      - run: terraform fmt -check -recursive ../../
+      - run: terraform fmt -check -recursive .
 
   terraform-plan:
     runs-on: ubuntu-latest
@@ -45,13 +45,13 @@ jobs:
       contents: read
     defaults:
       run:
-        working-directory: terraform/environments/dev
+        working-directory: terraform
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: us-east-1
+          aws-region: us-east-2
       - run: terraform init
-      - run: terraform plan -out=tfplan
+      - run: terraform plan -var-file=tfvars-env/dev/dev.tfvars -out=tfplan

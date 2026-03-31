@@ -12,7 +12,7 @@ jobs:
       contents: read
     defaults:
       run:
-        working-directory: terraform/environments/dev
+        working-directory: terraform
     steps:
       - uses: actions/checkout@v4
 
@@ -20,22 +20,14 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Package Lambda
-        run: |
-          cd ../../../app
-          pip install -r requirements.txt -t package/
-          cp -r src/* package/
-          cd package && zip -r ../../lambda.zip .
-
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: us-east-1
+          aws-region: us-east-2
 
-      - name: Upload Lambda package to S3
-        run: |
-          aws s3 cp ../../lambda.zip s3://platform-service-artifacts-dev/lambda/package.zip
+      - name: Package and upload Lambda
+        run: ../scripts/package-lambda.sh --upload platform-service-artifacts-dev lambda/package.zip
 
       - uses: hashicorp/setup-terraform@v3
       - run: terraform init
-      - run: terraform apply -auto-approve
+      - run: terraform apply -var-file=tfvars-env/dev/dev.tfvars -auto-approve
