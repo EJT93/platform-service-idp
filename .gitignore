@@ -22,3 +22,7 @@ __pycache__/
 # Packages
 *.zip
 package/
+
+# Test cache
+.hypothesis/
+.pytest_cache/
