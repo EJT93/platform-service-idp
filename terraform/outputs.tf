@@ -19,3 +19,7 @@ output "s3_bucket" {
 output "github_actions_role_arn" {
   value = module.github_oidc.role_arn
 }
+
+output "audit_function_name" {
+  value = module.audit.function_name
+}

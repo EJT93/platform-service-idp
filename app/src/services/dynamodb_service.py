@@ -6,7 +6,22 @@ from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-TABLE_NAME = os.environ.get("DYNAMODB_TABLE", "platform-service-table")
+ssm = boto3.client("ssm")
+
+
+def _resolve_table_name() -> str:
+    """Resolve table name from SSM parameter or fall back to env var."""
+    ssm_param = os.environ.get("DYNAMODB_TABLE_SSM")
+    if ssm_param:
+        try:
+            resp = ssm.get_parameter(Name=ssm_param)
+            return resp["Parameter"]["Value"]
+        except Exception:
+            logger.warning("Failed to read SSM param %s, falling back", ssm_param)
+    return os.environ.get("DYNAMODB_TABLE", "platform-service-table")
+
+
+TABLE_NAME = _resolve_table_name()
 
 
 class DynamoDBService:

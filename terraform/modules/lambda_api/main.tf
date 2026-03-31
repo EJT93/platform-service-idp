@@ -11,8 +11,8 @@ resource "aws_lambda_function" "api" {
 
   environment {
     variables = {
-      DYNAMODB_TABLE = var.dynamodb_table_name
-      LOG_LEVEL      = var.log_level
+      DYNAMODB_TABLE_SSM = var.dynamodb_table_ssm_param
+      LOG_LEVEL          = var.log_level
     }
   }
 

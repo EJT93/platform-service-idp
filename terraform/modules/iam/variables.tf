@@ -13,3 +13,9 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "ssm_parameter_arns" {
+  description = "ARNs of SSM parameters the Lambda can read"
+  type        = list(string)
+  default     = []
+}

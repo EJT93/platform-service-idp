@@ -18,8 +18,8 @@ variable "s3_key" {
   type        = string
 }
 
-variable "dynamodb_table_name" {
-  description = "DynamoDB table name"
+variable "dynamodb_table_ssm_param" {
+  description = "SSM parameter name containing the DynamoDB table name"
   type        = string
 }
 

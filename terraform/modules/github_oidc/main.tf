@@ -254,6 +254,23 @@ data "aws_iam_policy_document" "deploy" {
       "arn:aws:sns:${local.region}:${local.account_id}:platform-service-*",
     ]
   }
+
+  # SSM Parameter Store
+  statement {
+    actions = [
+      "ssm:PutParameter",
+      "ssm:GetParameter",
+      "ssm:GetParameters",
+      "ssm:DeleteParameter",
+      "ssm:DescribeParameters",
+      "ssm:ListTagsForResource",
+      "ssm:AddTagsToResource",
+      "ssm:RemoveTagsFromResource",
+    ]
+    resources = [
+      "arn:aws:ssm:${local.region}:${local.account_id}:parameter/platform-service/*",
+    ]
+  }
 }
 
 resource "aws_iam_role_policy" "deploy" {
